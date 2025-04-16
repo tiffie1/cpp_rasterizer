@@ -1,37 +1,43 @@
 #include "Canvas.h"
+#include <iostream>
 
 Canvas::Canvas() {
   name = "";
   width = 0;
   height = 0;
+  grid = nullptr;
 }
 
 Canvas::Canvas(std::string file_name, unsigned short canvas_width,
-               unsigned short canvas_height, unsigned short viewport_width,
-               unsigned short viewport_height,
-               unsigned short viewport_distance) {
+               unsigned short canvas_height) {
   name = file_name;
   width = canvas_width;
   height = canvas_height;
-  v_height = viewport_height;
-  v_width = viewport_width;
-  v_dist = viewport_distance;
   stream.open(name);
 
   stream << "P3 \n" << width << " " << height << "\n255\n"; // Header info.
+
+  // Allocate memory for color grid.
+  grid = new Vector *[height];
+  for (int i = 0; i < height; i++)
+    grid[i] = new Vector[width];
+
+  setBackgroundColor(Vector(255, 255, 255));
 }
 
 Canvas::~Canvas() {
   if (stream.is_open())
     stream.close();
+
+  for (int i = 0; i < height; i++)
+    delete[] grid[i];
+  delete[] grid;
+
 }
 
-unsigned short Canvas::getWidth() { return width; }
-unsigned short Canvas::getHeight() { return height; }
-std::string Canvas::getName() { return name; }
-unsigned short Canvas::getV_Width() { return v_width; }
-unsigned short Canvas::getV_Height() { return v_height; }
-unsigned short Canvas::getV_Distance() { return v_dist; }
+unsigned short Canvas::getWidth() const { return width; }
+unsigned short Canvas::getHeight() const { return height; }
+std::string Canvas::getName() const { return name; }
 
 void Canvas::setName(std::string new_name) {
   stream.close();
@@ -39,6 +45,14 @@ void Canvas::setName(std::string new_name) {
   stream.open(new_name);
 
   stream << "P3 \n" << width << " " << height << "\n255\n";
+}
+
+void Canvas::setBackgroundColor(Vector new_bg) {
+  for (int i = 0; i < height; i++) {
+    for (int j = 0; j < width; j++) {
+      grid[i][j] = new_bg; 
+    }
+  }
 }
 
 void Canvas::close() {
@@ -58,6 +72,27 @@ void Canvas::operator<<(const std::string message) {
   stream << message;
 }
 
+void print_grid(Canvas &canvas) {
+  for (int i = 0; i < canvas.height; i++) {
+    for (int j = 0; j < canvas.width; j++) {
+      std::cout << canvas.grid[i][j] << std::endl;
+    }
+    std::cout << std::endl;
+  }
+}
+
+void Canvas::save_grid() {
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      plot(grid[x][y]);
+    }
+  }
+}
+
 void Canvas::plot(Vector color) {
   stream << color.x << " " << color.y << " " << color.z << " \n";
+}
+
+void Canvas::plotGrid(int x, int y, Vector color) {
+  grid[x][y] = color;
 }

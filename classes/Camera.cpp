@@ -11,8 +11,96 @@
 
 Camera::Camera() : origin(Vector()) {}
 Camera::Camera(Vector origin_vec) : origin(origin_vec) {}
+Camera::~Camera() {}
 
 Vector Camera::getOrigin() { return origin; }
+
+std::vector<double> Interpolate(double start0, double end0, double start1,
+                                double end1) {
+  std::vector<double> calculated_values;
+
+  if (start0 == start1) {
+    calculated_values.push_back(end0);
+    return calculated_values;
+  }
+
+  double slope = (end1 - end0) / (start1 - start0);
+  double displacement = end0;
+
+  for (int i = start0; i <= start1; i++) {
+    calculated_values.push_back(displacement);
+    displacement += slope;
+  }
+
+  return calculated_values;
+}
+
+void Camera::DrawLine(Canvas &canvas, Point point0, Point point1,
+                      Vector color) {
+  int x0 = static_cast<int>(point0.x);
+  int y0 = static_cast<int>(point0.y);
+  int x1 = static_cast<int>(point1.x);
+  int y1 = static_cast<int>(point1.y);
+  int temp;
+
+  if (abs(x1 - x0) > abs(y1 - y0)) {
+    if (x0 > x1) {
+      temp = x0;
+      x0 = x1;
+      x1 = temp;
+
+      temp = y0;
+      y0 = y1;
+      y1 = temp;
+    }
+
+    std::vector<double> ys = Interpolate(x0, y0, x1, y1);
+    for (int x = x0; x < x1; x++) {
+      canvas.plotGrid(x, static_cast<int>(ys[x - x0]), color);
+    }
+  }
+
+  else {
+    if (y0 > y1) {
+      temp = x0;
+      x0 = x1;
+      x1 = temp;
+
+      temp = y0;
+      y0 = y1;
+      y1 = temp;
+    }
+
+    std::vector<double> xs = Interpolate(y0, x0, y1, x1);
+
+    for (int y = y0; y < y1; y++) {
+      canvas.plotGrid(static_cast<int>(xs[y - y0]), y, color);
+    }
+  }
+}
+
+void Camera::DrawPoint(Canvas &canvas, Point point, Vector color) {
+  canvas.plotGrid(point.x, point.y, color);
+}
+
+void Camera::DrawWireframeTriangle(Canvas &canvas, Point point0, Point point1,
+                                   Point point2, Vector color) {
+  DrawLine(canvas, point0, point1, color);
+  DrawLine(canvas, point1, point2, color);
+  DrawLine(canvas, point2, point0, color);
+}
+
+/*
+std::vector<int> ViewportToCanvas(Canvas &canvas, int x, int y) {
+  std::vector<int> result = {(x * canvas.getWidth() / canvas.getV_Width()),
+                             (y * canvas.getHeight() / canvas.getV_Height())};
+  return result;
+}
+
+std::vector<int> ProjectVertex(Canvas &canvas, Point point) {
+  return ViewportToCanvas(canvas, point.x, point.y);
+}
+*/
 
 /* THINGS TO IMPLEMENT LATER.
 void Camera::rotate(double yaw, double roll, double pitch) {

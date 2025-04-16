@@ -2,6 +2,7 @@
 #define CANVAS_H
 
 #include "Vector.h"
+#include "Point.h"
 #include <fstream>
 #include <string>
 
@@ -10,28 +11,31 @@ private:
   std::ofstream stream;
   std::string name;
   unsigned short width, height;
-  unsigned short v_width, v_height, v_dist;
+  Vector **grid;
+  Vector bg;
 
 public:
   Canvas();
-  Canvas(std::string file_name, unsigned short canvas_width,
-         unsigned short canvas_height, unsigned short viewport_width,
-         unsigned short viewport_height, unsigned short viewport_distance);
+  Canvas(std::string file_name, unsigned short width, unsigned short height);
+  Canvas(std::string file_name, unsigned short width, unsigned short height,
+         Vector bg_color);
   ~Canvas();
 
-  unsigned short getWidth();
-  unsigned short getHeight();
-  unsigned short getV_Width();
-  unsigned short getV_Height();
-  unsigned short getV_Distance();
-  std::string getName();
+  unsigned short getWidth() const;
+  unsigned short getHeight() const;
+  std::string getName() const;
   void setName(std::string new_name);
+  void setBackgroundColor(Vector new_bg);
 
   void close();
   void open();
+  void plotGrid(int x, int y, Vector color);
   void plot(Vector color);
 
   void operator<<(const std::string message);
+
+  friend void print_grid(Canvas &canvas);
+  void save_grid();
 };
 
 #endif // !CANVAS_H
