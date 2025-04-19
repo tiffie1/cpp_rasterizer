@@ -2,18 +2,22 @@
 #define CAMERA_H
 
 #include "Canvas.h"
+#include "CubeModel.h"
+#include "Triangle.h"
 #include "Vector.h"
+#include "Point.h"
 
 #include <array>
 #include <string>
+#include <vector>
 
 class Camera {
 private:
   Vector origin;
   struct VP {
-    unsigned short height;
-    unsigned short width;
-    unsigned short distance;
+    double height;
+    double width;
+    double distance;
   } viewport;
 
 public:
@@ -27,6 +31,12 @@ public:
   void DrawPoint(Canvas &canvas, Point point, Vector color);
   void DrawWireframeTriangle(Canvas &canvas, Point point0, Point point1,
                              Point point2, Vector color);
+  void RenderTriangle(Canvas &canvas, Triangle triangle,
+                      std::vector<std::vector<double>> projected_arr);
+  void RenderModel(Canvas &canvas, CubeModel model);
+
+  inline std::vector<double> ProjectVertex(Canvas &canvas, Vector coord);
+
   // void DrawFilledTriangle(Canvas &canvas, Point point0, Point point1,
   // Point point2, Vector color);
 

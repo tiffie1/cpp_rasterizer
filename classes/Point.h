@@ -2,8 +2,8 @@
 #define POINT_H
 
 struct Point {
-  unsigned int x;
-  unsigned int y;
+  int x;
+  int y;
 };
 
 #endif // !POINT_H

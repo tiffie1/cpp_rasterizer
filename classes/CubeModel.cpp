@@ -1,21 +1,21 @@
 #include "CubeModel.h"
 #include "Vector.h"
-#include <string>
 
 CubeModel::CubeModel() {}
 
-CubeModel::CubeModel(double x_off, double y_off, double z_off, std::string color) {
+CubeModel::CubeModel(double x_off, double y_off, double z_off,
+                     Vector color) {
 
-  Vector position = Vector(x_off, y_off, z_off);
+  Vector offset_vec = Vector(x_off, y_off, z_off);
 
-  Vector temp_vertices[9] = {
+  Vector temp_vertices[8] = {
       Vector(1, 1, 1),    Vector(-1, 1, 1),  Vector(-1, -1, 1),
       Vector(1, -1, 1),   Vector(1, 1, -1),  Vector(-1, 1, -1),
       Vector(-1, -1, -1), Vector(1, -1, -1),
   };
 
-  for (unsigned short i = 0; i < 9; i++) {
-    Vector v = vertices[i] + position;
+  for (unsigned short i = 0; i < 8; i++) {
+    Vector v = temp_vertices[i] + offset_vec;
     vertices[i] = v;
   }
 
@@ -28,3 +28,9 @@ CubeModel::CubeModel(double x_off, double y_off, double z_off, std::string color
     triangles[i] = temp_triangles[i];
   }
 }
+
+Vector CubeModel::getVertex(unsigned int i) const { return vertices[i]; }
+Triangle CubeModel::getTriangle(unsigned int i) const { return triangles[i]; }
+
+unsigned int CubeModel::getTriangleCount() const { return t_count; }
+unsigned int CubeModel::getVertexCount() const { return v_count; }

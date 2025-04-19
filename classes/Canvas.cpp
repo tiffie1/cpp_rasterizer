@@ -94,5 +94,11 @@ void Canvas::plot(Vector color) {
 }
 
 void Canvas::plotGrid(int x, int y, Vector color) {
-  grid[x][y] = color;
+  std::cout << "xy: " << x << " " << y << " " << std::endl;
+  // Avoid plotting if coord out of range of matrix.
+  if (x >= 0 && y >= 0 && x < width && y < height)
+    grid[x][y] = color;
+
+  else
+   std::cout << "Not doing." << std::endl;
 }

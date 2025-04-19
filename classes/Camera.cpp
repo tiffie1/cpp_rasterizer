@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "Vector.h"
+#include <iostream>
 #include <math.h>
 
 /*
@@ -7,10 +8,20 @@
 #include "Scene.h"
 #include <array>
 #include <cmath>
+#include <vector>
 */
 
-Camera::Camera() : origin(Vector()) {}
-Camera::Camera(Vector origin_vec) : origin(origin_vec) {}
+Camera::Camera() : origin(Vector()) {
+  viewport.height = 1;
+  viewport.width = 1;
+  viewport.distance = 1;
+}
+
+Camera::Camera(Vector origin_vec) : origin(origin_vec) {
+  viewport.height = 1;
+  viewport.width = 1;
+  viewport.distance = 1;
+}
 Camera::~Camera() {}
 
 Vector Camera::getOrigin() { return origin; }
@@ -86,21 +97,49 @@ void Camera::DrawPoint(Canvas &canvas, Point point, Vector color) {
 void Camera::DrawWireframeTriangle(Canvas &canvas, Point point0, Point point1,
                                    Point point2, Vector color) {
   DrawLine(canvas, point0, point1, color);
+  std::cout << "p0 -> p1" << std::endl;
   DrawLine(canvas, point1, point2, color);
+  std::cout << "p1 -> p2" << std::endl;
   DrawLine(canvas, point2, point0, color);
+  std::cout << "p2 -> p0" << std::endl;
 }
 
-/*
-std::vector<int> ViewportToCanvas(Canvas &canvas, int x, int y) {
-  std::vector<int> result = {(x * canvas.getWidth() / canvas.getV_Width()),
-                             (y * canvas.getHeight() / canvas.getV_Height())};
-  return result;
+inline std::vector<double> Camera::ProjectVertex(Canvas &canvas, Vector coord) {
+  double x = coord.x * viewport.distance / coord.z;
+  double y = coord.y * viewport.distance / coord.z;
+  return {(x * canvas.getWidth() / viewport.width),
+          (y * canvas.getHeight() / viewport.height)};
 }
 
-std::vector<int> ProjectVertex(Canvas &canvas, Point point) {
-  return ViewportToCanvas(canvas, point.x, point.y);
+void Camera::RenderModel(Canvas &canvas, CubeModel model) {
+  std::vector<std::vector<double>> projected;
+
+  for (int i = 0; i < model.getVertexCount(); i++) {
+    projected.push_back(ProjectVertex(canvas, model.getVertex(i)));
+  }
+
+  for (int i = 0; i < model.getTriangleCount(); i++) {
+    std::cout << i << std::endl;
+    RenderTriangle(canvas, model.getTriangle(i), projected);
+  }
 }
-*/
+
+void Camera::RenderTriangle(Canvas &canvas, Triangle triangle,
+                            std::vector<std::vector<double>> projected_arr) {
+  Point point1 = {static_cast<int>(projected_arr[triangle.id1][0]),
+                  static_cast<int>(projected_arr[triangle.id1][1])};
+  Point point2 = {static_cast<int>(projected_arr[triangle.id2][0]),
+                  static_cast<int>(projected_arr[triangle.id2][1])};
+  Point point3 = {static_cast<int>(projected_arr[triangle.id3][0]),
+                  static_cast<int>(projected_arr[triangle.id3][1])};
+
+  std::cout << point1.x << " " << point1.y << std::endl;
+  std::cout << point2.x << " " << point2.y << std::endl;
+  std::cout << point3.x << " " << point3.y << std::endl;
+
+  DrawWireframeTriangle(canvas, point1, point2, point3, triangle.color);
+  std::cout << "\n\n";
+}
 
 /* THINGS TO IMPLEMENT LATER.
 void Camera::rotate(double yaw, double roll, double pitch) {

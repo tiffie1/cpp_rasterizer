@@ -1,19 +1,23 @@
-#include <Vector.h>
+#include "Triangle.h"
+#include "Vector.h"
 #include <string>
 
-struct Triangle {
-  int id1;
-  int id2;
-  int id3;
-  std::string color;
-};
-
+// TODO: Make parent class.
+//
 class CubeModel {
 private:
-  Vector vertices[9];
+  Vector vertices[8];
   Triangle triangles[12];
 
+  const unsigned int v_count = 8;
+  const unsigned int t_count = 12;
 public:
   CubeModel();
-  CubeModel(double x_val, double y_val, double z_val, std::string color_str);
+  CubeModel(double x_offset, double y_offset, double z_offset, Vector color);
+
+  Vector getVertex(unsigned int index) const;
+  Triangle getTriangle(unsigned int index) const;
+
+  unsigned int getVertexCount() const; // Universal attribute.
+  unsigned int getTriangleCount() const; // Universal attribute.
 };
