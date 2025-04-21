@@ -2,5 +2,7 @@
 **/exec.dSYM/
 
 exec
+test_exec
 
 first.ppm
+
