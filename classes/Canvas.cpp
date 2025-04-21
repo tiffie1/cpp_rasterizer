@@ -1,5 +1,6 @@
 #include "Canvas.h"
 #include <iostream>
+#include <ostream>
 
 Canvas::Canvas() {
   name = "";
@@ -32,7 +33,6 @@ Canvas::~Canvas() {
   for (int i = 0; i < height; i++)
     delete[] grid[i];
   delete[] grid;
-
 }
 
 unsigned short Canvas::getWidth() const { return width; }
@@ -50,7 +50,7 @@ void Canvas::setName(std::string new_name) {
 void Canvas::setBackgroundColor(Vector new_bg) {
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
-      grid[i][j] = new_bg; 
+      grid[i][j] = new_bg;
     }
   }
 }
@@ -94,11 +94,21 @@ void Canvas::plot(Vector color) {
 }
 
 void Canvas::plotGrid(int x, int y, Vector color) {
-  std::cout << "xy: " << x << " " << y << " " << std::endl;
+
+  int px = (x + (width / 2));
+  int py = ((height / 2) - y);
+
+  std::cout << "x: " << x << " y: " << y << std::endl;
+  std::cout << "px: " << px << " py: " << py << std::endl;
+
   // Avoid plotting if coord out of range of matrix.
-  if (x >= 0 && y >= 0 && x < width && y < height)
-    grid[x][y] = color;
+  //if (x >= 0 && y >= 0 && x < width && y < height) {
+  if (px >= 0 && py >= 0 && px < width && py < height) {
+
+    // grid[x][y] = color;
+    grid[px][py] = color;
+  }
 
   else
-   std::cout << "Not doing." << std::endl;
+    std::cout << "Not doing." << std::endl;
 }

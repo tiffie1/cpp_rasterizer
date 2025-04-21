@@ -1,6 +1,6 @@
 #include "classes/Camera.h"
 #include "classes/Canvas.h"
-#include <classes/Vector.h>
+#include "classes/Vector.h"
 #include <cstdlib>
 
 int main() {
@@ -9,7 +9,7 @@ int main() {
 
   Vector red = Vector(255, 0, 0);
   Vector black = Vector(0, 0, 0);
-  CubeModel cube = CubeModel(2, 1.5, 5, black);
+  CubeModel cube = CubeModel(0, 0, 4, black);
 
   camera.RenderModel(canvas, cube);
   //camera.DrawWireframeTriangle(canvas, {18, 60}, {50, 30}, {85, 70},
