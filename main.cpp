@@ -9,25 +9,26 @@ int main() {
   Camera camera;
 
   Vector red = Vector(255, 0, 0);
-  Vector black = Vector(0, 0, 0);
   Vector green = Vector(0, 255, 0);
-  // CubeModel cube = CubeModel(0, 0, 4, black);
-  // camera.RenderModel(canvas, cube);
-  // camera.DrawWireframeTriangle(canvas, {18, 60}, {50, 30}, {85, 70},
-  // Vector(0, 0, 0));
+  Vector blue = Vector(0, 0, 255);
+  Vector black = Vector(0, 0, 0);
+
+
+  //camera.DrawFilledTriangle(canvas, {-10, -25}, {-18, 40}, {30, 40}, black);
+  //camera.DrawWireframeTriangle(canvas, {-10, -25}, {-18, 40}, {30, 40}, red);
 
   double x_off = -20;
-  double y_off = -10;
+  double y_off = -20;
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 20; i++) {
     x_off = -20;
     for (int j = 0; j < 20; j++) {
       // std::cout << "x_off: " << x_off << std::endl;
 
-      camera.RenderModel(canvas, CubeModel(x_off, y_off, 30, black));
-      x_off += 2.5;
+      camera.RenderModel(canvas, CubeModel(x_off, y_off, 40, black));
+      x_off += 2.8;
     }
-    y_off += 2.5;
+    y_off += 2.8;
   }
 
   canvas.save_grid();

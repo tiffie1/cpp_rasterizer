@@ -3,9 +3,9 @@
 
 #include "Canvas.h"
 #include "CubeModel.h"
+#include "Point.h"
 #include "Triangle.h"
 #include "Vector.h"
-#include "Point.h"
 
 #include <array>
 #include <string>
@@ -37,8 +37,8 @@ public:
 
   inline std::vector<double> ProjectVertex(Canvas &canvas, Vector coord);
 
-  // void DrawFilledTriangle(Canvas &canvas, Point point0, Point point1,
-  // Point point2, Vector color);
+  void DrawFilledTriangle(Canvas &canvas, Point point0, Point point1,
+                          Point point2, Vector color);
 
   /*
    void render_scene(Canvas &canvas,

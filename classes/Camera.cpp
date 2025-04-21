@@ -2,14 +2,13 @@
 #include "Vector.h"
 #include <iostream>
 #include <math.h>
-
-/*
-#include "Canvas.h"
-#include "Scene.h"
-#include <array>
-#include <cmath>
 #include <vector>
-*/
+
+inline void swap(int &x, int &y) {
+  int temp = x;
+  x = y;
+  y = temp;
+}
 
 Camera::Camera() : origin(Vector()) {
   viewport.height = 1;
@@ -48,21 +47,15 @@ std::vector<double> Interpolate(double start0, double end0, double start1,
 
 void Camera::DrawLine(Canvas &canvas, Point point0, Point point1,
                       Vector color) {
-  int x0 = static_cast<int>(point0.x);
-  int y0 = static_cast<int>(point0.y);
-  int x1 = static_cast<int>(point1.x);
-  int y1 = static_cast<int>(point1.y);
-  int temp;
+  int x0 = point0.x;
+  int y0 = point0.y;
+  int x1 = point1.x;
+  int y1 = point1.y;
 
   if (abs(x1 - x0) > abs(y1 - y0)) {
     if (x0 > x1) {
-      temp = x0;
-      x0 = x1;
-      x1 = temp;
-
-      temp = y0;
-      y0 = y1;
-      y1 = temp;
+      swap(x0, x1);
+      swap(y0, y1);
     }
 
     std::vector<double> ys = Interpolate(x0, y0, x1, y1);
@@ -73,13 +66,8 @@ void Camera::DrawLine(Canvas &canvas, Point point0, Point point1,
 
   else {
     if (y0 > y1) {
-      temp = x0;
-      x0 = x1;
-      x1 = temp;
-
-      temp = y0;
-      y0 = y1;
-      y1 = temp;
+      swap(x0, x1);
+      swap(y0, y1);
     }
 
     std::vector<double> xs = Interpolate(y0, x0, y1, x1);
@@ -129,7 +117,62 @@ void Camera::RenderTriangle(Canvas &canvas, Triangle triangle,
   Point point3 = {static_cast<int>(projected_arr[triangle.id3][0]),
                   static_cast<int>(projected_arr[triangle.id3][1])};
 
-  DrawWireframeTriangle(canvas, point1, point2, point3, triangle.color);
+  //DrawWireframeTriangle(canvas, point1, point2, point3, triangle.color);
+  DrawFilledTriangle(canvas, point1, point2, point3, triangle.color);
+}
+
+void Camera::DrawFilledTriangle(Canvas &canvas, Point point1, Point point2,
+                                Point point3, Vector color) {
+  int x0 = point1.x;
+  int y0 = point1.y;
+  int x1 = point2.x;
+  int y1 = point2.y;
+  int x2 = point3.x;
+  int y2 = point3.y;
+  int temp;
+
+  if (y1 < y0) {
+    swap(x0, x1);
+    swap(y0, y1);
+  }
+
+  if (y2 < y0) {
+    swap(x0, x2);
+    swap(y0, y2);
+  }
+
+  if (y2 < y1) {
+    swap(x1, x2);
+    swap(y1, y2);
+  }
+
+  std::vector<double> x01 = Interpolate(y0, x0, y1, x1);
+  std::vector<double> x12 = Interpolate(y1, x1, y2, x2);
+  std::vector<double> x02 = Interpolate(y0, x0, y2, x2);
+
+  x01.pop_back();
+
+  std::vector<double> x012 = x01;
+
+  for (int i = 0; i < x12.size(); i++)
+    x012.push_back(x12[i]);
+
+  int slope = x012.size() / 2;
+
+  std::vector<double> x_left, x_right;
+  if (x02[slope] < x012[slope]) {
+    x_left = x02;
+    x_right = x012;
+  } else {
+    x_left = x012;
+    x_right = x02;
+  }
+
+  for (int y = y0; y < y2; y++) {
+    for (int x = x_left[y - y0]; x < x_right[y - y0]; x++) {
+      canvas.plotGrid(x, y, color);
+    }
+  }
 }
 
 /* THINGS TO IMPLEMENT LATER.
