@@ -97,11 +97,8 @@ void Camera::DrawPoint(Canvas &canvas, Point point, Vector color) {
 void Camera::DrawWireframeTriangle(Canvas &canvas, Point point0, Point point1,
                                    Point point2, Vector color) {
   DrawLine(canvas, point0, point1, color);
-  std::cout << "p0 -> p1" << std::endl;
   DrawLine(canvas, point1, point2, color);
-  std::cout << "p1 -> p2" << std::endl;
   DrawLine(canvas, point2, point0, color);
-  std::cout << "p2 -> p0" << std::endl;
 }
 
 inline std::vector<double> Camera::ProjectVertex(Canvas &canvas, Vector coord) {
@@ -119,7 +116,6 @@ void Camera::RenderModel(Canvas &canvas, CubeModel model) {
   }
 
   for (int i = 0; i < model.getTriangleCount(); i++) {
-    std::cout << i << std::endl;
     RenderTriangle(canvas, model.getTriangle(i), projected);
   }
 }
@@ -133,12 +129,7 @@ void Camera::RenderTriangle(Canvas &canvas, Triangle triangle,
   Point point3 = {static_cast<int>(projected_arr[triangle.id3][0]),
                   static_cast<int>(projected_arr[triangle.id3][1])};
 
-  std::cout << point1.x << " " << point1.y << std::endl;
-  std::cout << point2.x << " " << point2.y << std::endl;
-  std::cout << point3.x << " " << point3.y << std::endl;
-
   DrawWireframeTriangle(canvas, point1, point2, point3, triangle.color);
-  std::cout << "\n\n";
 }
 
 /* THINGS TO IMPLEMENT LATER.

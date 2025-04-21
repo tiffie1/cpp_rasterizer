@@ -95,20 +95,15 @@ void Canvas::plot(Vector color) {
 
 void Canvas::plotGrid(int x, int y, Vector color) {
 
+  // Conversion to Cartesian grid.
   int px = (x + (width / 2));
   int py = ((height / 2) - y);
 
-  std::cout << "x: " << x << " y: " << y << std::endl;
-  std::cout << "px: " << px << " py: " << py << std::endl;
-
   // Avoid plotting if coord out of range of matrix.
-  //if (x >= 0 && y >= 0 && x < width && y < height) {
   if (px >= 0 && py >= 0 && px < width && py < height) {
 
     // grid[x][y] = color;
     grid[px][py] = color;
   }
 
-  else
-    std::cout << "Not doing." << std::endl;
 }
