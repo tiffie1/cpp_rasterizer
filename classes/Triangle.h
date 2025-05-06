@@ -1,13 +1,13 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
-#include "Vector.h"
+#include "HomoCoord.h"
 #include <string>
 
 struct Triangle {
   int id1;
   int id2;
   int id3;
-  Vector color;
+  HomoCoord color;
 };
 
 #endif // !TRIANGLE_H

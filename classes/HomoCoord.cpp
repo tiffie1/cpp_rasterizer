@@ -1,8 +1,6 @@
-// FIX LATER
-
 #include "HomoCoord.h"
 
-inline bool xnor(bool statement1, bool statement2) {
+bool xnor(bool statement1, bool statement2) {
   return !((statement1 && (!statement2)) || ((!statement1) && statement2));
 }
 
@@ -25,7 +23,7 @@ HomoCoord HomoCoord::operator-() const {
   return HomoCoord(-x, -y, -z, -coord_id);
 }
 
-inline HomoCoord HomoCoord::operator+(const HomoCoord &other) {
+HomoCoord HomoCoord::operator+(const HomoCoord &other) {
   // If both HomoCoord are the same type, add id.
   // Else, operation is a vector transpose.
   if (xnor(coord_id != 0, other.coord_id != 0))
@@ -35,7 +33,7 @@ inline HomoCoord HomoCoord::operator+(const HomoCoord &other) {
     return HomoCoord(x + other.x, y + other.y, z + other.z, 0);
 }
 
-inline HomoCoord HomoCoord::operator-(const HomoCoord &other) {
+HomoCoord HomoCoord::operator-(const HomoCoord &other) {
   // If both coordinates, turn into vector.
   // Else, standard addition.
   if (coord_id != 0 && other.coord_id != 0)
@@ -44,7 +42,7 @@ inline HomoCoord HomoCoord::operator-(const HomoCoord &other) {
     return *this + -other;
 }
 
-inline HomoCoord HomoCoord::operator*(const double scalar) {
+HomoCoord HomoCoord::operator*(const double scalar) {
   return HomoCoord(x * scalar, y * scalar, z * scalar, coord_id * scalar);
 }
 
@@ -82,7 +80,18 @@ double HomoCoord::dot(const HomoCoord &other) const {
 
 double HomoCoord::norm() { return sqrt(x * x + y * y + z * z); }
 
-std::ostream &operator<<(std::ostream &stream, const HomoCoord &vector) {
-  stream << "(" << vector.x << ", " << vector.y << ", " << vector.z << ")";
+bool HomoCoord::isCoord() const {
+  if (coord_id == 0)
+    return false;
+  else
+    return true;
+}
+
+std::ostream &operator<<(std::ostream &stream, const HomoCoord &value) {
+  if (value.coord_id == 0)
+    stream << "{" << value.x << ", " << value.y << ", " << value.z << "}";
+  else
+    stream << "(" << value.x << ", " << value.y << ", " << value.z << ")";
+
   return stream;
 }

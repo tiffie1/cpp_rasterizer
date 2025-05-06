@@ -1,7 +1,7 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "Vector.h"
+#include "HomoCoord.h"
 #include <string>
 
 class Scene {

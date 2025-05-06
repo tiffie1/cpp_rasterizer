@@ -1,6 +1,5 @@
 #include "Camera.h"
-#include "Vector.h"
-#include <iostream>
+#include "HomoCoord.h"
 #include <math.h>
 #include <vector>
 
@@ -10,20 +9,20 @@ inline void swap(int &x, int &y) {
   y = temp;
 }
 
-Camera::Camera() : origin(Vector()) {
+Camera::Camera() : origin(HomoCoord()) {
   viewport.height = 1;
   viewport.width = 1;
   viewport.distance = 1;
 }
 
-Camera::Camera(Vector origin_vec) : origin(origin_vec) {
+Camera::Camera(HomoCoord origin_vec) : origin(origin_vec) {
   viewport.height = 1;
   viewport.width = 1;
   viewport.distance = 1;
 }
 Camera::~Camera() {}
 
-Vector Camera::getOrigin() { return origin; }
+HomoCoord Camera::getOrigin() { return origin; }
 
 std::vector<double> Interpolate(double start0, double end0, double start1,
                                 double end1) {
@@ -46,7 +45,7 @@ std::vector<double> Interpolate(double start0, double end0, double start1,
 }
 
 void Camera::DrawLine(Canvas &canvas, Point point0, Point point1,
-                      Vector color) {
+                      HomoCoord color) {
   int x0 = point0.x;
   int y0 = point0.y;
   int x1 = point1.x;
@@ -78,18 +77,18 @@ void Camera::DrawLine(Canvas &canvas, Point point0, Point point1,
   }
 }
 
-void Camera::DrawPoint(Canvas &canvas, Point point, Vector color) {
+void Camera::DrawPoint(Canvas &canvas, Point point, HomoCoord color) {
   canvas.plotGrid(point.x, point.y, color);
 }
 
 void Camera::DrawWireframeTriangle(Canvas &canvas, Point point0, Point point1,
-                                   Point point2, Vector color) {
+                                   Point point2, HomoCoord color) {
   DrawLine(canvas, point0, point1, color);
   DrawLine(canvas, point1, point2, color);
   DrawLine(canvas, point2, point0, color);
 }
 
-inline std::vector<double> Camera::ProjectVertex(Canvas &canvas, Vector coord) {
+inline std::vector<double> Camera::ProjectVertex(Canvas &canvas, HomoCoord coord) {
   double x = coord.x * viewport.distance / coord.z;
   double y = coord.y * viewport.distance / coord.z;
   return {(x * canvas.getWidth() / viewport.width),
@@ -122,7 +121,7 @@ void Camera::RenderTriangle(Canvas &canvas, Triangle triangle,
 }
 
 void Camera::DrawFilledTriangle(Canvas &canvas, Point point1, Point point2,
-                                Point point3, Vector color) {
+                                Point point3, HomoCoord color) {
   int x0 = point1.x;
   int y0 = point1.y;
   int x1 = point2.x;

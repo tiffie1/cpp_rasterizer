@@ -19,11 +19,11 @@ Canvas::Canvas(std::string file_name, unsigned short canvas_width,
   stream << "P3 \n" << width << " " << height << "\n255\n"; // Header info.
 
   // Allocate memory for color grid.
-  grid = new Vector *[height];
+  grid = new HomoCoord *[height];
   for (int i = 0; i < height; i++)
-    grid[i] = new Vector[width];
+    grid[i] = new HomoCoord[width];
 
-  setBackgroundColor(Vector(255, 255, 255));
+  setBackgroundColor(HomoCoord(255, 255, 255, 1));
 }
 
 Canvas::~Canvas() {
@@ -47,7 +47,7 @@ void Canvas::setName(std::string new_name) {
   stream << "P3 \n" << width << " " << height << "\n255\n";
 }
 
-void Canvas::setBackgroundColor(Vector new_bg) {
+void Canvas::setBackgroundColor(HomoCoord new_bg) {
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++) {
       grid[i][j] = new_bg;
@@ -89,11 +89,11 @@ void Canvas::save_grid() {
   }
 }
 
-void Canvas::plot(Vector color) {
+void Canvas::plot(HomoCoord color) {
   stream << color.x << " " << color.y << " " << color.z << " \n";
 }
 
-void Canvas::plotGrid(int x, int y, Vector color) {
+void Canvas::plotGrid(int x, int y, HomoCoord color) {
 
   // Conversion to Cartesian grid.
   int px = (x + (width / 2));

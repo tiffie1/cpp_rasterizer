@@ -16,16 +16,16 @@ public:
   // is_coord: 0 false; !0 true.
   HomoCoord(double x_value, double y_value, double z_value, double is_coord);
 
-  inline HomoCoord operator+(const HomoCoord &other);
-  inline HomoCoord operator-(const HomoCoord &other);
-  inline HomoCoord operator-() const;
-  inline HomoCoord operator*(const double scalar);
-  inline HomoCoord operator*(const HomoCoord &other);
-  inline HomoCoord operator/(const double scalar);
-  inline HomoCoord operator/(const HomoCoord &other);
-  inline HomoCoord &operator=(const HomoCoord &other);
+  HomoCoord operator+(const HomoCoord &other);
+  HomoCoord operator-(const HomoCoord &other);
+  HomoCoord operator-() const;
+  HomoCoord operator*(const double scalar);
+  HomoCoord operator*(const HomoCoord &other);
+  HomoCoord operator/(const double scalar);
+  HomoCoord operator/(const HomoCoord &other);
+  HomoCoord &operator=(const HomoCoord &other);
 
-  double isCoord() const;
+  bool isCoord() const;
 
   double dot(const HomoCoord &other) const;
   double norm();
