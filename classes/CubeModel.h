@@ -1,13 +1,14 @@
 #include "HomoCoord.h"
 #include "Triangle.h"
 #include <string>
+#include <vector>
 
 // TODO: Make parent class.
 //
 class CubeModel {
 private:
-  HomoCoord vertices[8];
-  Triangle triangles[12];
+  std::vector<HomoCoord> vertices;
+  std::vector<Triangle> triangles;
 
   struct {
     HomoCoord scale;
@@ -31,8 +32,10 @@ public:
   HomoCoord getScaleModifier() const;
   HomoCoord getRotationModifier() const;
   HomoCoord getTranslationModifier() const;
+  int addVertex(HomoCoord vertex);
+  void addTriangle(Triangle triangle);
 
-  inline CubeModel &operator=(const CubeModel &other);
+  CubeModel &operator=(const CubeModel &other);
 
   void scale(double x_val, double y_val, double z_val);     // I_s.
   void rotate(double yaw, double roll, double pitch);     // I_r.

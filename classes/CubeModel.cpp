@@ -14,7 +14,7 @@ CubeModel::CubeModel(HomoCoord color) {
   };
 
   for (unsigned short i = 0; i < 8; i++) {
-    vertices[i] = temp_vertices[i];
+    vertices.push_back(temp_vertices[i]);
   }
 
   Triangle temp_triangles[12] = {
@@ -23,7 +23,7 @@ CubeModel::CubeModel(HomoCoord color) {
       {4, 5, 1, color}, {4, 1, 0, color}, {2, 6, 7, color}, {2, 7, 3, color}};
 
   for (unsigned short i = 0; i < 12; i++) {
-    triangles[i] = temp_triangles[i];
+    triangles.push_back(temp_triangles[i]);
   }
 }
 
@@ -32,8 +32,8 @@ CubeModel::CubeModel() { *this = CubeModel(HomoCoord(0, 0, 0, 1)); }
 HomoCoord CubeModel::getVertex(unsigned int i) const { return vertices[i]; }
 Triangle CubeModel::getTriangle(unsigned int i) const { return triangles[i]; }
 
-unsigned int CubeModel::getTriangleCount() const { return t_count; }
-unsigned int CubeModel::getVertexCount() const { return v_count; }
+unsigned int CubeModel::getTriangleCount() const { return triangles.size(); }
+unsigned int CubeModel::getVertexCount() const { return vertices.size(); }
 
 HomoCoord CubeModel::getScaleModifier() const { return modifiers.scale; }
 HomoCoord CubeModel::getRotationModifier() const { return modifiers.rotation; }
@@ -41,14 +41,26 @@ HomoCoord CubeModel::getTranslationModifier() const {
   return modifiers.translation;
 }
 
-inline CubeModel &CubeModel::operator=(const CubeModel &other) {
+int CubeModel::addVertex(HomoCoord vertex) {
+  vertices.push_back(vertex);
+  return static_cast<int>(vertices.size() - 1);
+}
+
+void CubeModel::addTriangle(Triangle triangle) {
+  triangles.push_back(triangle);
+}
+
+CubeModel &CubeModel::operator=(const CubeModel &other) {
   if (this != &other) {
+    triangles.clear();
+    vertices.clear();
+
     for (int i = 0; i < other.getTriangleCount(); i++) {
-      triangles[i] = other.getTriangle(i);
+      triangles.push_back(other.getTriangle(i));
     }
 
     for (int i = 0; i < other.getVertexCount(); i++) {
-      vertices[i] = other.getVertex(i);
+      vertices.push_back(other.getVertex(i));
     }
   }
 
@@ -56,9 +68,12 @@ inline CubeModel &CubeModel::operator=(const CubeModel &other) {
 }
 
 void CubeModel::scale(double x_val, double y_val, double z_val) {
-  if (x_val == 1) x_val = 0;
-  if (y_val == 1) y_val = 0;
-  if (z_val == 1) z_val = 0;
+  if (x_val == 1)
+    x_val = 0;
+  if (y_val == 1)
+    y_val = 0;
+  if (z_val == 1)
+    z_val = 0;
 
   modifiers.scale = modifiers.scale + HomoCoord(x_val, y_val, z_val, 1);
 }

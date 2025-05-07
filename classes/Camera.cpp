@@ -5,7 +5,15 @@
 #include <math.h>
 #include <vector>
 
+struct Plane {
+  HomoCoord n; // normal, *must* be unit length
+  double d;    // signed offset
+  Plane() = default;
+  Plane(const HomoCoord &normal, double _d) : n(normal), d(_d) {}
+};
+
 inline void swap(int &x, int &y) {
+
   int temp = x;
   x = y;
   y = temp;
@@ -19,7 +27,7 @@ Camera::Camera() : origin(HomoCoord()) {
   modifiers.rotation = HomoCoord();
   modifiers.translation = HomoCoord();
 
-  double num = 1/std::sqrt(2);
+  double num = 1 / std::sqrt(2);
 
   planes.near = HomoCoord(0, 0, viewport.distance, 0);
   planes.left = HomoCoord(num, 0, num, 0);
@@ -36,7 +44,7 @@ Camera::Camera(HomoCoord origin_vec) : origin(origin_vec) {
   modifiers.rotation = HomoCoord();
   modifiers.translation = HomoCoord();
 
-  double num = 1/std::sqrt(2);
+  double num = 1 / std::sqrt(2);
 
   planes.near = HomoCoord(0, 0, viewport.distance, 0);
   planes.left = HomoCoord(num, 0, num, 0);
@@ -120,11 +128,118 @@ inline std::vector<double> Camera::ProjectVertex(Canvas &canvas,
           (y * canvas.getHeight() / viewport.height)};
 }
 
-void Clip(Camera &camera, Canvas &canvas, Scene &scene) {
+inline double SignedDistance(const Plane &P, const HomoCoord v) {
+  return v.x * P.n.x + v.y * P.n.y + v.z * P.n.z + P.d;
+}
+
+inline HomoCoord Intersect(HomoCoord A, HomoCoord B, const Plane &P) {
+  double da = SignedDistance(P, A);
+  double db = SignedDistance(P, B);
+  double t = da / (da - db);
+  return A + ((B - A) * t);
+}
+
+struct ClipTri {
+  HomoCoord v0, v1, v2;
+  HomoCoord colour;
+};
+
+inline std::vector<ClipTri> ClipTriangle(const ClipTri &T, const Plane &P) {
+  double d0 = SignedDistance(P, T.v0);
+  double d1 = SignedDistance(P, T.v1);
+  double d2 = SignedDistance(P, T.v2);
+
+  bool inside0 = d0 >= 0, inside1 = d1 >= 0, inside2 = d2 >= 0;
+
+  if (inside0 && inside1 && inside2)
+    return {T};
+
+  if (!inside0 && !inside1 && !inside2)
+    return {};
+
+  if (inside0 && !inside1 && !inside2) {
+    HomoCoord Bp = Intersect(T.v0, T.v1, P);
+    HomoCoord Cp = Intersect(T.v0, T.v2, P);
+    return {{T.v0, Bp, Cp, T.colour}};
+  }
+  if (inside1 && !inside0 && !inside2) {
+    HomoCoord Ap = Intersect(T.v1, T.v0, P);
+    HomoCoord Cp = Intersect(T.v1, T.v2, P);
+    return {{T.v1, Cp, Ap, T.colour}};
+  }
+  if (inside2 && !inside0 && !inside1) {
+    HomoCoord Ap = Intersect(T.v2, T.v0, P);
+    HomoCoord Bp = Intersect(T.v2, T.v1, P);
+    return {{T.v2, Ap, Bp, T.colour}};
+  }
+
+  if (!inside0 && inside1 && inside2) {
+    HomoCoord Ap = Intersect(T.v0, T.v1, P);
+    HomoCoord Bp = Intersect(T.v0, T.v2, P);
+    return {{T.v1, T.v2, Ap, T.colour}, {Ap, T.v2, Bp, T.colour}};
+  }
+  if (!inside1 && inside0 && inside2) {
+    HomoCoord Bp = Intersect(T.v1, T.v0, P);
+    HomoCoord Cp = Intersect(T.v1, T.v2, P);
+    return {{T.v0, Cp, T.v2, T.colour}, {T.v0, Bp, Cp, T.colour}};
+  }
+  if (!inside2 && inside0 && inside1) {
+    HomoCoord Cp = Intersect(T.v2, T.v0, P);
+    HomoCoord Bp = Intersect(T.v2, T.v1, P);
+    return {{T.v0, T.v1, Cp, T.colour}, {Cp, T.v1, Bp, T.colour}};
+  }
+
+  return {};
+}
+
+inline CubeModel ClipModelAgainstPlane(const CubeModel &in, const Plane &P) {
+  std::vector<ClipTri> out_tris;
+
+  for (int i = 0; i < in.getTriangleCount(); ++i) {
+    Triangle t = in.getTriangle(i);
+    ClipTri ct{in.getVertex(t.id1), in.getVertex(t.id2), in.getVertex(t.id3),
+               t.color};
+    std::vector<ClipTri> clipped = ClipTriangle(ct, P);
+    out_tris.insert(out_tris.end(), clipped.begin(), clipped.end());
+  }
+
+  if (out_tris.empty()) // entire mesh is out
+    return CubeModel(); // an “empty” model
+
+  // --- rebuild a CubeModel with fresh vertices
+  CubeModel result;
+  for (const auto &ct : out_tris) {
+    int base = result.addVertex(ct.v0);
+    int b = result.addVertex(ct.v1);
+    int c = result.addVertex(ct.v2);
+    result.addTriangle(Triangle({base, b, c, ct.colour}));
+  }
+  return result;
+}
+
+inline CubeModel ClipInstanceAgainstFrustum(const CubeModel &in,
+                                            const Camera &cam) {
+  // build 6 planes from cam.planes  (their .w member will be 'd')
+  std::vector<Plane> planes = {
+      {cam.planes.near, -cam.viewport.distance}, //  z = -n   (OpenGL-style)
+      {cam.planes.left, 0},
+      {cam.planes.right, 0},
+      {cam.planes.up, 0},
+      {cam.planes.bottom, 0},
+      /*{Plane(...far...) }  // add if you have a finite far-plane */
+  };
+
+  CubeModel cur = in;
+  for (const Plane &p : planes) {
+    cur = ClipModelAgainstPlane(cur, p);
+    if (cur.getTriangleCount() == 0)
+      break; // early out – object completely outside
+  }
+  return cur;
 }
 
 std::vector<double> FullTrans(Camera &camera, Canvas &canvas, CubeModel &model,
-                HomoCoord scene_point) {
+                              HomoCoord scene_point) {
 
   scene_point = scene_point * model.getScaleModifier(); // Scale instance.
 
@@ -187,27 +302,25 @@ std::vector<double> FullTrans(Camera &camera, Canvas &canvas, CubeModel &model,
 
   // Project and Map to Canvas
   double x = ((scene_point.x * camera.viewport.distance) / scene_point.z) *
-          (canvas.getWidth() / camera.viewport.width);
+             (canvas.getWidth() / camera.viewport.width);
   double y = ((scene_point.y * camera.viewport.distance) / scene_point.z) *
-          (canvas.getHeight() / camera.viewport.height);
+             (canvas.getHeight() / camera.viewport.height);
 
   return {x, y};
 }
 
 void Camera::RenderModel(Canvas &canvas, CubeModel model) {
+  CubeModel clipped = ClipInstanceAgainstFrustum(model, *this);
+
   std::vector<std::vector<double>> projected;
 
-  for (int i = 0; i < model.getVertexCount(); i++) {
-    std::vector<double> proj = FullTrans(*this, canvas, model, model.getVertex(i));
-
-    std::cout << model.getVertex(i) << std::endl;
-    std::cout << "{" << proj[0] << ", " << proj[1]  << "}" << std::endl << std::endl;
-
-    projected.push_back(FullTrans(*this, canvas, model, model.getVertex(i)));
+  for (int i = 0; i < clipped.getVertexCount(); i++) {
+    projected.push_back(
+        FullTrans(*this, canvas, clipped, clipped.getVertex(i)));
   }
 
-  for (int i = 0; i < model.getTriangleCount(); i++) {
-    RenderTriangle(canvas, model.getTriangle(i), projected);
+  for (int i = 0; i < clipped.getTriangleCount(); i++) {
+    RenderTriangle(canvas, clipped.getTriangle(i), projected);
   }
 }
 

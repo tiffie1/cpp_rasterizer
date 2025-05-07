@@ -16,10 +16,9 @@ int main() {
 
   model.transform(0, 0, 10);
   model.rotate(35, 0, 0);
-  model.scale(1, 1, 1);
 
-  camera.transform(0, 0, 3);
-  camera.rotate(0, 35, 0);
+  //camera.rotate(0, 0, -90);
+  camera.transform(0, 0, 5);
 
   camera.RenderModel(canvas, model);
 

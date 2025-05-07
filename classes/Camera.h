@@ -59,6 +59,9 @@ public:
 
   friend std::vector<double> FullTrans(Camera &camera, Canvas &canvas,
                                        CubeModel &model, HomoCoord scene_point);
+
+  friend CubeModel ClipInstanceAgainstFrustum(const CubeModel &in,
+                                              const Camera &cam);
 };
 
 #endif // !CAMERA_H
