@@ -1,21 +1,20 @@
 #include "CubeModel.h"
 #include "HomoCoord.h"
 
-
-CubeModel::CubeModel(double x_off, double y_off, double z_off,
-                     HomoCoord color) {
-
-  HomoCoord offset_vec = HomoCoord(x_off, y_off, z_off, 1);
+CubeModel::CubeModel(HomoCoord color) {
+  modifiers.rotation = HomoCoord();
+  modifiers.scale = HomoCoord(1, 1, 1, 1);
+  modifiers.translation = HomoCoord();
 
   HomoCoord temp_vertices[8] = {
-      HomoCoord(1, 1, 1, 1),    HomoCoord(-1, 1, 1, 1),  HomoCoord(-1, -1, 1, 1),
-      HomoCoord(1, -1, 1, 1),   HomoCoord(1, 1, -1, 1),  HomoCoord(-1, 1, -1, 1),
+      HomoCoord(1, 1, 1, 1),    HomoCoord(-1, 1, 1, 1),
+      HomoCoord(-1, -1, 1, 1),  HomoCoord(1, -1, 1, 1),
+      HomoCoord(1, 1, -1, 1),   HomoCoord(-1, 1, -1, 1),
       HomoCoord(-1, -1, -1, 1), HomoCoord(1, -1, -1, 1),
   };
 
   for (unsigned short i = 0; i < 8; i++) {
-    HomoCoord v = temp_vertices[i] + offset_vec;
-    vertices[i] = v;
+    vertices[i] = temp_vertices[i];
   }
 
   Triangle temp_triangles[12] = {
@@ -28,15 +27,19 @@ CubeModel::CubeModel(double x_off, double y_off, double z_off,
   }
 }
 
-CubeModel::CubeModel() {
-  *this = CubeModel(0, 0, 0, HomoCoord(0, 0, 0, 1));
-}
+CubeModel::CubeModel() { *this = CubeModel(HomoCoord(0, 0, 0, 1)); }
 
 HomoCoord CubeModel::getVertex(unsigned int i) const { return vertices[i]; }
 Triangle CubeModel::getTriangle(unsigned int i) const { return triangles[i]; }
 
 unsigned int CubeModel::getTriangleCount() const { return t_count; }
 unsigned int CubeModel::getVertexCount() const { return v_count; }
+
+HomoCoord CubeModel::getScaleModifier() const { return modifiers.scale; }
+HomoCoord CubeModel::getRotationModifier() const { return modifiers.rotation; }
+HomoCoord CubeModel::getTranslationModifier() const {
+  return modifiers.translation;
+}
 
 inline CubeModel &CubeModel::operator=(const CubeModel &other) {
   if (this != &other) {
@@ -52,8 +55,19 @@ inline CubeModel &CubeModel::operator=(const CubeModel &other) {
   return *this;
 }
 
+void CubeModel::scale(double x_val, double y_val, double z_val) {
+  if (x_val == 1) x_val = 0;
+  if (y_val == 1) y_val = 0;
+  if (z_val == 1) z_val = 0;
+
+  modifiers.scale = modifiers.scale + HomoCoord(x_val, y_val, z_val, 1);
+}
+
+void CubeModel::rotate(double yaw, double roll, double pitch) {
+  modifiers.rotation = modifiers.rotation + HomoCoord(yaw, roll, pitch, 1);
+}
+
 void CubeModel::transform(double x_val, double y_val, double z_val) {
-  for (int i = 0; i < v_count; i++) {
-    
-  }
+  modifiers.translation =
+      modifiers.translation + HomoCoord(x_val, y_val, z_val, 1);
 }

@@ -1,5 +1,7 @@
 #include "Camera.h"
 #include "HomoCoord.h"
+#include "Scene.h"
+#include <cmath>
 #include <math.h>
 #include <vector>
 
@@ -13,12 +15,34 @@ Camera::Camera() : origin(HomoCoord()) {
   viewport.height = 1;
   viewport.width = 1;
   viewport.distance = 1;
+
+  modifiers.rotation = HomoCoord();
+  modifiers.translation = HomoCoord();
+
+  double num = 1/std::sqrt(2);
+
+  planes.near = HomoCoord(0, 0, viewport.distance, 0);
+  planes.left = HomoCoord(num, 0, num, 0);
+  planes.right = HomoCoord(-num, 0, num, 0);
+  planes.bottom = HomoCoord(0, num, num, 0);
+  planes.up = HomoCoord(0, -num, num, 0);
 }
 
 Camera::Camera(HomoCoord origin_vec) : origin(origin_vec) {
   viewport.height = 1;
   viewport.width = 1;
   viewport.distance = 1;
+
+  modifiers.rotation = HomoCoord();
+  modifiers.translation = HomoCoord();
+
+  double num = 1/std::sqrt(2);
+
+  planes.near = HomoCoord(0, 0, viewport.distance, 0);
+  planes.left = HomoCoord(num, 0, num, 0);
+  planes.right = HomoCoord(-num, 0, num, 0);
+  planes.bottom = HomoCoord(0, num, num, 0);
+  planes.up = HomoCoord(0, -num, num, 0);
 }
 Camera::~Camera() {}
 
@@ -88,18 +112,98 @@ void Camera::DrawWireframeTriangle(Canvas &canvas, Point point0, Point point1,
   DrawLine(canvas, point2, point0, color);
 }
 
-inline std::vector<double> Camera::ProjectVertex(Canvas &canvas, HomoCoord coord) {
+inline std::vector<double> Camera::ProjectVertex(Canvas &canvas,
+                                                 HomoCoord coord) {
   double x = coord.x * viewport.distance / coord.z;
   double y = coord.y * viewport.distance / coord.z;
   return {(x * canvas.getWidth() / viewport.width),
           (y * canvas.getHeight() / viewport.height)};
 }
 
+void Clip(Camera &camera, Canvas &canvas, Scene &scene) {
+}
+
+std::vector<double> FullTrans(Camera &camera, Canvas &canvas, CubeModel &model,
+                HomoCoord scene_point) {
+
+  scene_point = scene_point * model.getScaleModifier(); // Scale instance.
+
+  // Rotate instance.
+  double yaw = model.getRotationModifier().x;
+  double roll = model.getRotationModifier().y;
+  double pitch = model.getRotationModifier().z;
+
+  yaw = yaw * M_PI / 180.0;
+  roll = roll * M_PI / 180.0;
+  pitch = pitch * M_PI / 180.0;
+
+  HomoCoord matrix[4] = {
+      HomoCoord(cos(roll) * cos(yaw),
+                cos(roll) * sin(yaw) * sin(pitch) - sin(roll) * cos(pitch),
+                cos(roll) * sin(yaw) * cos(pitch) + sin(roll) * sin(pitch), 0),
+      HomoCoord(sin(roll) * cos(yaw),
+                sin(roll) * sin(yaw) * sin(pitch) + cos(roll) * cos(pitch),
+                sin(roll) * sin(yaw) * cos(pitch) - cos(roll) * sin(pitch), 0),
+      HomoCoord(-sin(yaw), cos(yaw) * sin(pitch), cos(yaw) * cos(pitch), 0),
+      HomoCoord(0, 0, 0, 1)};
+
+  scene_point =
+      HomoCoord(scene_point.dot(matrix[0]), scene_point.dot(matrix[1]),
+                scene_point.dot(matrix[2]), scene_point.dot(matrix[3]));
+
+  scene_point =
+      scene_point + model.getTranslationModifier(); // Transform instance.
+
+  scene_point =
+      scene_point -
+      (camera.origin + camera.modifiers.translation); // Transform Camera.
+
+  // Rotate Camera.
+  yaw = camera.modifiers.rotation.x;
+  roll = camera.modifiers.rotation.y;
+  pitch = camera.modifiers.rotation.z;
+
+  yaw = yaw * M_PI / 180.0;
+  roll = roll * M_PI / 180.0;
+  pitch = pitch * M_PI / 180.0;
+
+  matrix[0] =
+      HomoCoord(cos(roll) * cos(yaw),
+                cos(roll) * sin(yaw) * sin(pitch) - sin(roll) * cos(pitch),
+                cos(roll) * sin(yaw) * cos(pitch) + sin(roll) * sin(pitch), 0);
+  matrix[1] =
+      HomoCoord(sin(roll) * cos(yaw),
+                sin(roll) * sin(yaw) * sin(pitch) + cos(roll) * cos(pitch),
+                sin(roll) * sin(yaw) * cos(pitch) - cos(roll) * sin(pitch), 0);
+
+  matrix[2] =
+      HomoCoord(-sin(yaw), cos(yaw) * sin(pitch), cos(yaw) * cos(pitch), 0);
+
+  matrix[3] = HomoCoord(0, 0, 0, 1);
+
+  scene_point =
+      HomoCoord(scene_point.dot(matrix[0]), scene_point.dot(matrix[1]),
+                scene_point.dot(matrix[2]), scene_point.dot(matrix[3]));
+
+  // Project and Map to Canvas
+  double x = ((scene_point.x * camera.viewport.distance) / scene_point.z) *
+          (canvas.getWidth() / camera.viewport.width);
+  double y = ((scene_point.y * camera.viewport.distance) / scene_point.z) *
+          (canvas.getHeight() / camera.viewport.height);
+
+  return {x, y};
+}
+
 void Camera::RenderModel(Canvas &canvas, CubeModel model) {
   std::vector<std::vector<double>> projected;
 
   for (int i = 0; i < model.getVertexCount(); i++) {
-    projected.push_back(ProjectVertex(canvas, model.getVertex(i)));
+    std::vector<double> proj = FullTrans(*this, canvas, model, model.getVertex(i));
+
+    std::cout << model.getVertex(i) << std::endl;
+    std::cout << "{" << proj[0] << ", " << proj[1]  << "}" << std::endl << std::endl;
+
+    projected.push_back(FullTrans(*this, canvas, model, model.getVertex(i)));
   }
 
   for (int i = 0; i < model.getTriangleCount(); i++) {
@@ -116,7 +220,7 @@ void Camera::RenderTriangle(Canvas &canvas, Triangle triangle,
   Point point3 = {static_cast<int>(projected_arr[triangle.id3][0]),
                   static_cast<int>(projected_arr[triangle.id3][1])};
 
-  //DrawWireframeTriangle(canvas, point1, point2, point3, triangle.color);
+  // DrawWireframeTriangle(canvas, point1, point2, point3, triangle.color);
   DrawFilledTriangle(canvas, point1, point2, point3, triangle.color);
 }
 
@@ -172,6 +276,15 @@ void Camera::DrawFilledTriangle(Canvas &canvas, Point point1, Point point2,
       canvas.plotGrid(x, y, color);
     }
   }
+}
+
+void Camera::rotate(double yaw, double roll, double pitch) {
+  modifiers.rotation = modifiers.rotation + HomoCoord(yaw, roll, pitch, 1);
+}
+
+void Camera::transform(double x_val, double y_val, double z_val) {
+  modifiers.translation =
+      modifiers.translation + HomoCoord(x_val, y_val, z_val, 1);
 }
 
 /* THINGS TO IMPLEMENT LATER.

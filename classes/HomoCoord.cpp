@@ -6,9 +6,9 @@ bool xnor(bool statement1, bool statement2) {
 
 HomoCoord::HomoCoord() {
   x = 0;
-  x = 0;
-  x = 0;
-  coord_id = false;
+  y = 0;
+  z = 0;
+  coord_id = 1;
 }
 
 HomoCoord::HomoCoord(double x_value, double y_value, double z_value,
@@ -75,7 +75,7 @@ HomoCoord &HomoCoord::operator=(const HomoCoord &other) {
 }
 
 double HomoCoord::dot(const HomoCoord &other) const {
-  return x * other.x + y * other.y + z * other.z;
+  return x * other.x + y * other.y + z * other.z + coord_id * other.coord_id;
 }
 
 double HomoCoord::norm() { return sqrt(x * x + y * y + z * z); }
@@ -95,3 +95,4 @@ std::ostream &operator<<(std::ostream &stream, const HomoCoord &value) {
 
   return stream;
 }
+

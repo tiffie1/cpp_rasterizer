@@ -3,9 +3,9 @@
 
 #include "Canvas.h"
 #include "CubeModel.h"
+#include "HomoCoord.h"
 #include "Point.h"
 #include "Triangle.h"
-#include "HomoCoord.h"
 
 #include <array>
 #include <string>
@@ -14,11 +14,25 @@
 class Camera {
 private:
   HomoCoord origin;
+
   struct VP {
     double height;
     double width;
     double distance;
   } viewport;
+
+  struct {
+    HomoCoord rotation;
+    HomoCoord translation;
+  } modifiers;
+
+  struct {
+    HomoCoord near;
+    HomoCoord left;
+    HomoCoord right;
+    HomoCoord bottom;
+    HomoCoord up;
+  } planes;
 
 public:
   Camera();
@@ -39,6 +53,12 @@ public:
 
   void DrawFilledTriangle(Canvas &canvas, Point point0, Point point1,
                           Point point2, HomoCoord color);
+
+  void rotate(double yaw, double roll, double pitch);
+  void transform(double x_val, double y_val, double z_val);
+
+  friend std::vector<double> FullTrans(Camera &camera, Canvas &canvas,
+                                       CubeModel &model, HomoCoord scene_point);
 };
 
 #endif // !CAMERA_H

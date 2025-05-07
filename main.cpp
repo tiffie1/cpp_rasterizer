@@ -12,10 +12,18 @@ int main() {
   HomoCoord blue = HomoCoord(0, 0, 255, 1);
   HomoCoord black = HomoCoord(0, 0, 0, 1);
 
+  CubeModel model = CubeModel(black);
 
-  //camera.DrawFilledTriangle(canvas, {-10, -25}, {-18, 40}, {30, 40}, black);
-  //camera.DrawWireframeTriangle(canvas, {-10, -25}, {-18, 40}, {30, 40}, red);
+  model.transform(0, 0, 10);
+  model.rotate(35, 0, 0);
+  model.scale(1, 1, 1);
 
+  camera.transform(0, 0, 3);
+  camera.rotate(0, 35, 0);
+
+  camera.RenderModel(canvas, model);
+
+  /*
   double x_off = -20;
   double y_off = -20;
 
@@ -29,7 +37,9 @@ int main() {
     }
     y_off += 2.8;
   }
+  */
 
+  // ------------ //
   canvas.save_grid();
   return 0;
 }
