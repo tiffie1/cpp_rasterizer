@@ -9,6 +9,16 @@ This is a rasterizer made in C++ that implements the following:
 - Transformation and rotation of camera and models, with support for scaling on models
 - Clipping
 
+## Compiling
+To compile the `main.cpp` file, use the compiler of
+your choice (GNU's gcc is recommended).   
+
+Example:
+```bash
+g++ main.cpp ./classes/*.cpp -o exec && ./exec
+```
+Note that compiling the header implementations is required. 
+
 Showcase of most recent render:
 
 ![Line](first.png)
