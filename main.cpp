@@ -22,22 +22,6 @@ int main() {
 
   camera.RenderModel(canvas, model);
 
-  /*
-  double x_off = -20;
-  double y_off = -20;
-
-  for (int i = 0; i < 20; i++) {
-    x_off = -20;
-    for (int j = 0; j < 20; j++) {
-      // std::cout << "x_off: " << x_off << std::endl;
-
-      camera.RenderModel(canvas, CubeModel(x_off, y_off, 40, red));
-      x_off += 2.8;
-    }
-    y_off += 2.8;
-  }
-  */
-
   // ------------ //
   canvas.save_grid();
   return 0;
